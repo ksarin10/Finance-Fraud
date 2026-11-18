@@ -2,12 +2,26 @@ import pandas as pd
 import random
 from faker import Faker
 import json
+from pathlib import Path
+import argparse
 
 fake = Faker()
 Faker.seed(42)
 random.seed(42)
 
-with open('ip_to_zip.json') as f:
+DEFAULT_MAPPING_PATH = Path(__file__).with_name('ip_to_zip.json')
+
+
+def parse_args():
+    parser = argparse.ArgumentParser(description='Generate illustrative synthetic transactions.')
+    parser.add_argument('--mapping', type=Path, default=DEFAULT_MAPPING_PATH)
+    parser.add_argument('--output', type=Path, default=Path('synthetic_fraud_data.csv'))
+    return parser.parse_args()
+
+
+args = parse_args()
+
+with args.mapping.open() as f:
     ip_to_zip_mappings = json.load(f)
 
 
@@ -56,7 +70,8 @@ for _ in range(450):
 df = pd.DataFrame(data)
 
 # Save to CSV
-df.to_csv('synthetic_fraud_data.csv', index=False)
+df.to_csv(args.output, index=False)
 
 # Display the first few rows
 print(df.head())
+print(f"Wrote {len(df):,} rows to {args.output}")
